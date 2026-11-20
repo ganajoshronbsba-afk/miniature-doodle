@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thrifty</title>
+<!-- Fonts load without blocking the page. If they are slow or offline, system fonts are used. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Inter:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Inter:wght@400;500;600&display=swap"></noscript>
+<style>
+/* Layout: a phone-first app shell. Wordmark header, tab bar, one working view at a time. Teal is the only brand colour; orange is reserved for warnings. */
+:root{
+  --bg:#F1F4F9; --surface:#FFFFFF; --ink:#141A2E; --muted:#5B6479; --line:#DDE3EE;
+  --brand:#0B8F7F; --brand-ink:#FFFFFF; --tint:#E3F4F1; --warn:#C2410C; --warn-tint:#FDEBDD; --good:#1B7F4B;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1320; --surface:#171E31; --ink:#EEF1F8; --muted:#9AA5BD; --line:#2A3350;
+  --brand:#3CCDB9; --brand-ink:#06201C; --tint:#14302F; --warn:#FF9A6B; --warn-tint:#33211A; --good:#5BD38F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1320; --surface:#171E31; --ink:#EEF1F8; --muted:#9AA5BD; --line:#2A3350;
+  --brand:#3CCDB9; --brand-ink:#06201C; --tint:#14302F; --warn:#FF9A6B; --warn-tint:#33211A; --good:#5BD38F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);margin:0;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:880px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0 12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font:700 30px/1 var(--display);letter-spacing:-.02em}
+.logo svg{width:40px;height:40px;flex:none}
+.logo span{color:var(--brand)}
+.tag{color:var(--muted);font-size:13px}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:16px}
+nav[hidden]{display:none}
+nav button{font:600 14px var(--body);padding:8px 14px;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+nav button[aria-current="page"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+h2{font:700 20px/1.2 var(--display);margin:0 0 4px;letter-spacing:-.01em}
+h3{font:600 15px var(--body);margin:0 0 10px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr))}
+.two{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));align-items:start;margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat .v{font:700 26px/1.2 var(--display);margin-top:4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.stat .n{font-size:12.5px;color:var(--muted);margin-top:2px}
+.warn{color:var(--warn)} .good{color:var(--good)}
+.tip{border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--tint)}
+.tip.warn{background:var(--warn-tint);color:var(--ink)}
+.tip b{display:block;margin-bottom:2px}
+.tip.warn b{color:var(--warn)}
+.tip p{margin:0;font-size:14px;color:var(--muted)}
+.tip.warn p{color:var(--ink)}
+form{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));align-items:end}
+label{display:grid;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+input,select{font:16px var(--body);padding:10px;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+.btn{font:600 14px var(--body);padding:10px 16px;min-height:44px;border-radius:10px;border:0;background:var(--brand);color:var(--brand-ink);cursor:pointer}
+.btn.alt{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 8px;min-width:44px;min-height:44px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .l{min-width:0}
+.row .l small{display:block;color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.row .r{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:0}
+.bar{height:8px;border-radius:99px;background:var(--line);position:relative;overflow:hidden;margin-top:6px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--brand);border-radius:99px}
+.bar i.over{background:var(--warn)}
+.cat{margin-bottom:14px}.cat:last-child{margin-bottom:0}
+.cat .t{display:flex;justify-content:space-between;gap:8px;font-size:14px;font-variant-numeric:tabular-nums}
+.days{display:flex;align-items:flex-end;gap:4px;height:90px}
+.days div{flex:1;background:var(--brand);border-radius:4px 4px 0 0;min-height:2px;opacity:.85}
+.days div.today{opacity:1}
+.dl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{font:500 13px var(--body);padding:6px 14px;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+svg{display:block;width:100%;height:auto}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px}
+details{margin-top:12px}summary{cursor:pointer;font-weight:600;font-size:14px;padding:12px 0}
+.hd{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 2px}
+.demo{background:var(--tint);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:14px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+footer{color:var(--muted);font-size:12.5px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+#acct{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);min-width:0}
+#acct span{overflow-wrap:anywhere}
+.gate{max-width:620px;margin:0 auto}
+.gate form{display:block}
+.terms{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);font-size:13.5px;margin-bottom:12px}
+.terms ol{margin:0;padding-left:18px;display:grid;gap:8px}
+.chk{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:14px}
+.chk input{width:auto;min-height:0;margin-top:3px}
+.err{color:var(--warn);font-weight:600;margin:10px 0 0;min-height:1em;font-size:14px}
+.pair{display:grid;gap:10px;grid-template-columns:90px 1fr}
+.dob{display:grid;gap:10px;grid-template-columns:1fr 1fr 1.4fr}
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mnav b{font:700 16px var(--display)}
+.mnav .btn{min-width:44px;padding:10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 8px 8px 16px;border-radius:12px;display:flex;gap:8px;align-items:center;max-width:min(92vw,520px);z-index:50;font-size:14px}
+.toast[hidden]{display:none}
+.toast button{background:none;border:0;color:var(--bg);font:700 14px var(--body);text-decoration:underline;cursor:pointer;min-height:44px;padding:0 12px}
+.savewarn{background:var(--warn-tint);color:var(--ink);border:1px solid var(--warn);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px}
+.savewarn[hidden]{display:none}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:18px;max-width:min(92vw,420px);font:15px/1.5 var(--body)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog p{margin:0 0 14px}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .3s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="logo" role="img" aria-label="Thrifty"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="var(--brand)"/><ellipse cx="20" cy="31.5" rx="10" ry="3.4" fill="var(--brand-ink)" opacity=".55"/><ellipse cx="20" cy="27.5" rx="10" ry="3.4" fill="var(--brand-ink)"/><path d="M20 27V17" stroke="var(--brand-ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M20 19.5C13.5 20 10.5 15.5 10.5 11.5C16.5 11 20 14.5 20 19.5Z" fill="var(--brand-ink)"/><path d="M20 16.5C20 11 23.5 7.5 29.5 7.5C29.5 13 26 16.5 20 16.5Z" fill="var(--brand-ink)"/></svg><div>thrifty<span>.</span></div></div><div class="tag">Money habits for people who are just starting out</div><div id="acct"></div></header>
+  <div id="savewarn" class="savewarn" role="alert" hidden>Your latest changes could not be saved (browser storage may be full or blocked). Open Home, then Your profile, and download a backup before you close this tab.</div>
+  <nav id="nav" hidden>
+    <button data-tab="home">Home</button><button data-tab="spend">Spending</button><button data-tab="liabilities">Liabilities</button>
+    <button data-tab="markets">Markets</button><button data-tab="history">History</button>
+  </nav>
+  <main id="view"></main>
+  <footer>Thrifty gives educational guidance based on the numbers you enter. It is not licensed financial advice. Market prices here are simulated practice data. Everything you enter stays in this browser, encrypted with your password.</footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="dlg" aria-labelledby="dlg-msg"><p id="dlg-msg"></p><div class="chips" style="margin:0;justify-content:flex-end"><button type="button" class="btn alt" data-dlg="no">Cancel</button><button type="button" class="btn" data-dlg="yes" id="dlg-ok">OK</button></div></dialog>
+<input type="file" id="restore" accept="application/json,.json" hidden>
+
+<script>
+(function(){
+'use strict';
+var CATS=['Food','Transport','Fun','Shopping','Bills','Health','Other'];
+var MOODS=[['planned','Planned'],['treat','Treat myself'],['stress','Stress'],['bored','Bored'],['fomo','Peer pressure']];
+var IMPULSE=['stress','bored','fomo'];
+var MOODNAME={planned:'Planned',treat:'Treat myself',stress:'Stress',bored:'Bored',fomo:'Peer pressure'};
+var CURS=['₱','$','€','£','¥'];
+var LTYPES=['Pay-later','Credit card','Loan','Other'];
+var SYMS=[{id:'SAMP',name:'Sample Index Fund',kind:'fund',start:100,vol:.008,drift:.0004,seed:11},
+          {id:'TECH',name:'Techco (sample stock)',kind:'stock',start:50,vol:.02,drift:.0003,seed:23},
+          {id:'COINX',name:'Coinx (sample crypto)',kind:'crypto',start:1000,vol:.045,drift:.0002,seed:37}];
+var DEFAULT_BUDGET={Food:6000,Transport:2500,Fun:2500,Shopping:3000,Bills:3000,Health:1000,Other:1000};
+var PREFIX='thrifty2-u-',FPREFIX='thrifty2-f-',SESSK='thrifty2-sess',TABK='thrifty2-tab',ITER=250000,MAXA=1e9,IDLE_MS=15*60*1000;
+
+var pad=function(n){return String(n).padStart(2,'0')};
+var iso=function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+var NOW,TODAY,MONTH,DOM,DIM;
+function tick(){NOW=new Date();TODAY=iso(NOW);MONTH=TODAY.slice(0,7);DOM=NOW.getDate();DIM=new Date(NOW.getFullYear(),NOW.getMonth()+1,0).getDate()}
+tick();
+var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var $=function(s){return document.querySelector(s)};
+var set=function(sel,html){var e=$(sel);if(e)e.innerHTML=html};
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function series(s){var r=rng(s.seed),p=s.start,a=[];for(var i=0;i<90;i++){p=p*(1+s.drift+(r()-.5)*2*s.vol);a.push(+p.toFixed(2))}return a}
+
+/* ---------- state ---------- */
+var UI={tab:'home',sym:'SAMP',range:90,vm:null,edit:null,authMode:'register'},OPEN={};
+var USER=null,KEY=null,SALT='',CREATED=0,S=null,FATAL='',busy=false,lockMsg='',undoSnap=null,idleT=null,toastT=null;
+
+/* ---------- storage (every call guarded) ---------- */
+var mem={};
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+function ssGet(k){try{var v=sessionStorage.getItem(k);return v==null?(mem[k]||null):v}catch(e){return mem[k]||null}}
+function ssSet(k,v){mem[k]=v;try{sessionStorage.setItem(k,v)}catch(e){}}
+function ssDel(k){delete mem[k];try{sessionStorage.removeItem(k)}catch(e){}}
+function storageOk(){try{var k='__thrifty_probe';localStorage.setItem(k,'1');localStorage.removeItem(k);return true}catch(e){return false}}
+function accounts(){var a=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf(PREFIX)===0)a.push(k.slice(PREFIX.length))}}catch(e){}return a}
+
+/* ---------- encryption: key derived from the password, AES-GCM ---------- */
+var enc=new TextEncoder(),dec=new TextDecoder();
+function b64e(buf){var a=new Uint8Array(buf),s='';for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s)}
+function b64d(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+function deriveKey(pw,salt){return crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']).then(function(k){return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:ITER,hash:'SHA-256'},k,{name:'AES-GCM',length:256},true,['encrypt','decrypt'])})}
+function encryptObj(key,obj){var iv=crypto.getRandomValues(new Uint8Array(12));return crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,enc.encode(JSON.stringify(obj))).then(function(ct){return{iv:b64e(iv),ct:b64e(ct)}})}
+function decryptText(key,rec){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(rec.iv)},key,b64d(rec.ct)).then(function(pt){return dec.decode(pt)})}
+
+/* ---------- data model: always validated, never trusted ---------- */
+function num(x,d,mn,mx){x=parseFloat(x);if(!isFinite(x))return d;return Math.min(mx,Math.max(mn,x))}
+function str(x,n){return String(x==null?'':x).slice(0,n)}
+function validDay(s){return typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&iso(new Date(s+'T00:00:00'))===s}
+function freshState(name,cur,income){
+  var mkt={};SYMS.forEach(function(s){mkt[s.id]=series(s)});
+  return{v:2,name:str(name,40),cur:CURS.indexOf(cur)>-1?cur:'₱',income:num(income,0,0,MAXA),budget:Object.assign({},DEFAULT_BUDGET),exp:[],bnpl:[],mkt:mkt,hist:[]};
+}
+function migrate(o){
+  if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('bad data');
+  var s=freshState(o.name,o.cur,o.income);
+  CATS.forEach(function(c){s.budget[c]=num(o.budget&&o.budget[c],DEFAULT_BUDGET[c],0,MAXA)});
+  s.exp=(Array.isArray(o.exp)?o.exp:[]).map(function(e){e=e||{};return{id:str(e.id,24)||uid(),d:validDay(e.d)?e.d:TODAY,a:num(e.a,0,0,MAXA),c:CATS.indexOf(e.c)>-1?e.c:'Other',n:str(e.n,60),m:MOODNAME[e.m]?e.m:'planned',s:e.s?1:0}}).filter(function(e){return e.a>0});
+  s.bnpl=(Array.isArray(o.bnpl)?o.bnpl:[]).map(function(b){b=b||{};return{id:str(b.id,24)||uid(),n:str(b.n,60)||'Liability',t:LTYPES.indexOf(b.t)>-1?b.t:'Pay-later',m:num(b.m,0,0,MAXA),left:Math.round(num(b.left,0,0,600)),since:/^\d{4}-\d{2}$/.test(b.since||'')?b.since:MONTH,s:b.s?1:0}}).filter(function(b){return b.m>0});
+  SYMS.forEach(function(sy){var a=o.mkt&&o.mkt[sy.id];if(Array.isArray(a)&&a.length>=2&&a.every(function(v){return isFinite(v)&&v>0}))s.mkt[sy.id]=a.slice(-180).map(Number)});
+  s.hist=(Array.isArray(o.hist)?o.hist:[]).slice(0,200).map(function(h){h=h||{};return{t:num(h.t,Date.now(),0,8.64e15),x:str(h.x,240)}});
+  return s;
+}
+function log(x){S.hist.unshift({t:Date.now(),x:x});S.hist=S.hist.slice(0,200)}
+
+/* ---------- saving: serialized, with a visible error if it fails ---------- */
+var saveChain=Promise.resolve();
+function warnSave(on){var w=$('#savewarn');if(w)w.hidden=!on}
+function persist(){
+  if(!USER||!S||!KEY)return Promise.resolve();
+  var u=USER,k=KEY,salt=SALT,created=CREATED;
+  return encryptObj(k,S).then(function(e){
+    if(!lsSet(PREFIX+u,JSON.stringify({v:2,salt:salt,iv:e.iv,ct:e.ct,created:created})))throw new Error('write');
+    warnSave(false);
+  }).catch(function(){warnSave(true)});
+}
+function save(){saveChain=saveChain.then(persist,persist)}
+
+/* ---------- helpers ---------- */
+var sum=function(a){return a.reduce(function(s,x){return s+x},0)};
+var money=function(n){return(n<0?'-':'')+S.cur+Math.abs(Math.round(n)).toLocaleString('en-US')};
+var pct=function(x){return Math.round(x*100)+'%'};
+function monthsBetween(a,b){var ay=+a.slice(0,4),am=+a.slice(5,7),by=+b.slice(0,4),bm=+b.slice(5,7);return(by-ay)*12+(bm-am)}
+function shiftMonth(m,d){var y=+m.slice(0,4),mo=+m.slice(5,7)-1+d;var dt=new Date(y,mo,1);return dt.getFullYear()+'-'+pad(dt.getMonth()+1)}
+function monthLabel(m){return new Date(+m.slice(0,4),+m.slice(5,7)-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'})}
+var expIn=function(m){return S.exp.filter(function(e){return e.d.slice(0,7)===m})};
+var spentIn=function(m){return sum(expIn(m).map(function(e){return e.a}))};
+var spent=function(){return spentIn(MONTH)};
+function byCat(m){var o={};CATS.forEach(function(c){o[c]=0});expIn(m).forEach(function(e){o[e.c]+=e.a});return o}
+function earliest(){var m=MONTH;S.exp.forEach(function(e){if(e.d.slice(0,7)<m)m=e.d.slice(0,7)});return m}
+function vmonth(){return UI.vm&&UI.vm<=MONTH?UI.vm:MONTH}
+var bLeft=function(b){return Math.max(0,b.left-Math.max(0,monthsBetween(b.since,MONTH)))};
+var activeB=function(){return S.bnpl.filter(function(b){return bLeft(b)>0})};
+var bnplMonthly=function(){return sum(activeB().map(function(b){return b.m}))};
+var bnplOwed=function(){return sum(activeB().map(function(b){return b.m*bLeft(b)}))};
+var canProject=function(){return DOM>=7};
+var projected=function(){return spent()/DOM*DIM};
+var budgetTotal=function(){return sum(CATS.map(function(c){return+S.budget[c]||0}))};
+var last=function(id){var a=S.mkt[id];return a[a.length-1]};
+var hasSample=function(){return S.exp.some(function(e){return e.s})||S.bnpl.some(function(b){return b.s})};
+var op=function(k){return OPEN[k]?' open':''};
+
+function sampleItems(){
+  var day=function(d){return MONTH+'-'+pad(Math.max(1,Math.min(DOM,d)))};
+  var rows=[[1,180,'Food','Lunch with blockmates','planned'],[1,45,'Transport','Commute','planned'],[2,1299,'Shopping','Flash sale shirt','fomo'],
+    [3,320,'Fun','Movie night','treat'],[4,150,'Food','Milk tea','bored'],[5,999,'Bills','Phone load and data','planned'],
+    [6,240,'Food','Delivery dinner','stress'],[7,60,'Transport','Jeep and train','planned'],[8,899,'Shopping','Late night online cart','bored'],
+    [9,410,'Food','Groceries','planned'],[10,500,'Fun','Gig tickets','treat'],[11,95,'Food','Coffee','planned'],[12,350,'Health','Vitamins','planned']];
+  return{exp:rows.map(function(r){return{id:uid(),d:day(r[0]),a:r[1],c:r[2],n:r[3],m:r[4],s:1}}),
+    bnpl:[{id:uid(),n:'Phone instalment',t:'Pay-later',m:1200,left:6,since:MONTH,s:1},{id:uid(),n:'Sneakers pay-later',t:'Pay-later',m:800,left:3,since:MONTH,s:1}]};
+}
+
+function insights(){
+  var out=[],sp=spent(),inc=+S.income||0,bm=bnplMonthly(),bc=byCat(MONTH),act=activeB();
+  var T=function(l,t,b){out.push({l:l,t:t,b:b})};
+  if(inc>0&&bm>inc*.2)T('warn','Debt payments take '+pct(bm/inc)+' of your income','Your liabilities cost '+money(bm)+' every month before you buy anything else, and '+money(bnplOwed())+' is still owed. A common guardrail is 20% or less. Hold off on new instalments or borrowing until one is paid off.');
+  else if(bm>0)T('info','You owe '+money(bnplOwed())+' across '+act.length+' liabilit'+(act.length>1?'ies':'y'),'That is '+money(bm)+' a month. Money you owe is already spent, so count these payments before you plan new purchases.');
+  var over=CATS.filter(function(c){return+S.budget[c]>0&&bc[c]>S.budget[c]});
+  if(over.length)T('warn','Over budget on '+over.join(', '),over.map(function(c){return c+' is '+money(bc[c]-S.budget[c])+' over'}).join('. ')+'. Either move the budget on purpose or slow down for the rest of the month.');
+  if(inc>0&&sp+bm>inc)T('warn','Spending plus liabilities already pass your income','You have spent '+money(sp)+' and owe '+money(bm)+' in payments this month, against '+money(inc)+' income.');
+  else if(sp>0&&inc>0&&canProject()){var p=projected()+bm;
+    if(p>inc)T('warn','At this pace you will spend '+money(p)+' this month','That is '+money(p-inc)+' more than the income you entered ('+money(inc)+'), counting liability payments. Cutting about '+money((p-inc)/Math.max(1,DIM-DOM))+' a day from here would fix it.');
+    else T('good','You are on track this month','Projected spending with liability payments is '+money(p)+', which leaves about '+money(inc-p)+' to save or invest.')}
+  var imp=sum(expIn(MONTH).filter(function(e){return IMPULSE.indexOf(e.m)>-1}).map(function(e){return e.a}));
+  if(sp>0&&imp/sp>.25)T('warn',pct(imp/sp)+' of your spending came from stress, boredom or peer pressure',money(imp)+' this month was bought for a mood, not a plan. Try a 24-hour wait on anything over '+money(Math.max(300,inc*.01))+' and see how many purchases survive it.');
+  if(!out.length)T('info','Add a few expenses to get advice','The more you log, the more specific the guidance gets. Month-end projections start after day 7.');
+  return out;
+}
+function tips(list){return list.map(function(t){return'<div class="tip '+(t.l==='warn'?'warn':'')+'"><b>'+esc(t.t)+'</b><p>'+esc(t.b)+'</p></div>'}).join('')}
+function catBars(m){
+  var bc=byCat(m);
+  return CATS.map(function(c){var b=+S.budget[c]||0,v=bc[c],w=b?Math.min(100,v/b*100):(v?100:0);
+    return'<div class="cat"><div class="t"><span>'+c+'</span><span class="'+(b&&v>b?'warn':'')+'">'+money(v)+(b?' / '+money(b):'')+'</span></div><div class="bar"><i class="'+(b&&v>b?'over':'')+'" style="width:'+w+'%"></i></div></div>'}).join('');
+}
+function dayBars(){
+  var vals=[],labs=[];
+  for(var i=13;i>=0;i--){var d=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate()-i),k=iso(d);
+    vals.push(sum(S.exp.filter(function(e){return e.d===k}).map(function(e){return e.a})));labs.push(d)}
+  var mx=Math.max.apply(null,vals)||1;
+  return'<div class="days" role="img" aria-label="Daily spending for the last 14 days">'+vals.map(function(v,i){return'<div class="'+(i===13?'today':'')+'" style="height:'+Math.max(2,v/mx*100)+'%" title="'+money(v)+'"></div>'}).join('')+'</div><div class="dl"><span>'+labs[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span><span>Today</span></div>';
+}
+function demoBar(){
+  if(hasSample())return'<div class="demo"><span>Some of what you see is sample data.</span><button class="btn alt" data-act="rm-sample">Remove sample data</button></div>';
+  if(!S.exp.length&&!S.bnpl.length)return'<div class="demo"><span>Nothing here yet. Add your first expense, or look around with sample data.</span><button class="btn alt" data-act="load-sample">Load sample data</button></div>';
+  return'';
+}
+
+/* ---------- views ---------- */
+var VIEWS={
+home:function(){
+  return'<div id="h-demo"></div><div id="h-title"></div><div id="h-stats" class="grid"></div>'+
+  '<div class="two"><div class="card"><h3>What Thrifty noticed</h3><div id="h-tips"></div></div>'+
+  '<div class="card"><h3>Last 14 days of spending</h3><div id="h-days"></div><div class="hd">This month by category</div><div id="h-bars"></div></div></div>'+
+  '<details class="card" data-k="profile"'+op('profile')+'><summary>Your profile</summary><form style="margin-top:4px"><label>Name<input type="text" id="pname" maxlength="40" value="'+esc(S.name||'')+'" data-bind="name"></label><label>Monthly income<input type="number" min="0" max="1000000000" step="any" id="inc" value="'+S.income+'" data-bind="income"></label>'+
+  '<label>Currency<select id="cur" data-bind="cur">'+CURS.map(function(c){return'<option'+(c===S.cur?' selected':'')+'>'+c+'</option>'}).join('')+'</select></label></form>'+
+  '<div class="hd">Backup</div><p class="note" style="margin-top:4px">Download a copy of your data, or restore one. The backup file is not encrypted, so keep it private.</p><div class="chips" style="margin-top:8px"><button type="button" class="btn alt" data-act="backup">Download backup</button><button type="button" class="btn alt" data-act="restore-pick">Restore from backup</button></div>'+
+  '<div class="hd">Terms of Agreement</div><div class="terms">'+TERMS+'</div><div class="hd">Account</div><div class="row"><span class="l">'+esc(USER)+'<small>Saved on this device only</small></span><button type="button" class="btn alt" data-act="del-acct">Delete account</button></div></details>';
+},
+spend:function(){
+  var m=vmonth(),canPrev=m>earliest(),canNext=m<MONTH,e=UI.edit?S.exp.filter(function(x){return x.id===UI.edit})[0]:null;
+  return'<div id="s-demo">'+demoBar()+'</div><h2>Spending</h2><p class="sub">Log it the same day. The mood tag is how Thrifty spots doom spending.</p>'+
+  '<div class="card" id="exp-card"><h3>'+(e?'Edit expense':'Add an expense')+'</h3><form data-form="exp"><label>Amount<input name="a" type="number" min="0.01" max="1000000000" step="0.01" required inputmode="decimal" value="'+(e?e.a:'')+'"></label>'+
+  '<label>Category<select name="c">'+CATS.map(function(c){return'<option'+(e&&e.c===c?' selected':'')+'>'+c+'</option>'}).join('')+'</select></label>'+
+  '<label>What for<input name="n" type="text" maxlength="60" placeholder="Optional" value="'+(e?esc(e.n):'')+'"></label>'+
+  '<label>Why did you buy it?<select name="m">'+MOODS.map(function(x){return'<option value="'+x[0]+'"'+(e&&e.m===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>'+
+  '<label>Date<input name="d" type="date" required min="2000-01-01" max="'+TODAY+'" value="'+(e?e.d:TODAY)+'"></label>'+
+  '<button class="btn">'+(e?'Save changes':'Add expense')+'</button>'+(e?'<button type="button" class="btn alt" data-act="edit-cancel">Cancel</button>':'')+'</form><p class="err" id="ferr" role="alert"></p></div>'+
+  '<div class="mnav" style="margin-top:14px"><button class="btn alt" data-act="mprev" aria-label="Previous month"'+(canPrev?'':' disabled')+'>‹</button><b>'+monthLabel(m)+'</b><button class="btn alt" data-act="mnext" aria-label="Next month"'+(canNext?'':' disabled')+'>›</button></div>'+
+  '<div class="two" style="margin-top:0"><div class="card"><h3 id="s-title"></h3><div id="s-list"></div></div>'+
+  '<div><div class="card"><h3>Budget by category</h3><div id="s-bars"></div>'+
+  '<details data-k="budgets"'+op('budgets')+'><summary>Edit monthly budgets</summary><form>'+CATS.map(function(c){return'<label>'+c+'<input type="number" min="0" max="1000000000" step="any" value="'+(S.budget[c]||0)+'" data-bind="budget" data-cat="'+c+'"></label>'}).join('')+'</form></details></div>'+
+  '<div id="s-moods"></div></div></div>';
+},
+liabilities:function(){
+  var tot=bnplOwed(),m=bnplMonthly(),inc=+S.income||0;
+  return demoBar()+'<h2>Liabilities</h2><p class="sub">Everything you owe: pay-later plans, cards and loans. Money you owe is already spent. Months left counts down by itself each month.</p>'+
+  '<div class="grid"><div class="card stat"><div class="k">Total owed</div><div class="v warn">'+money(tot)+'</div></div>'+
+  '<div class="card stat"><div class="k">Due each month</div><div class="v '+(inc>0&&m>inc*.2?'warn':'')+'">'+money(m)+'</div><div class="n">'+(inc>0?pct(m/inc)+' of your income':'Add your income on Home')+'</div></div></div>'+
+  '<div class="card" style="margin-top:12px"><h3>What you owe</h3>'+(S.bnpl.length?S.bnpl.map(function(b){var l=bLeft(b);return'<div class="row"><div class="l">'+esc(b.n)+'<small>'+esc(b.t)+' · '+money(b.m)+' a month · '+(l>0?l+' month'+(l>1?'s':'')+' left':'Paid off')+(b.s?' · sample':'')+'</small></div><div class="r">'+money(b.m*l)+'<button class="x" data-act="del-bnpl" data-id="'+b.id+'" aria-label="Remove liability">×</button></div></div>'}).join(''):'<p class="sub">You owe nothing right now. Keep it that way if you can.</p>')+
+  '<form data-form="bnpl" style="margin-top:14px"><label>Name<input name="n" maxlength="60" required></label><label>Type<select name="t">'+LTYPES.map(function(t){return'<option>'+t+'</option>'}).join('')+'</select></label><label>Per month<input name="m" type="number" min="0.01" max="1000000000" step="0.01" required></label><label>Months left<input name="left" type="number" min="1" max="600" step="1" required></label><button class="btn">Add liability</button></form><p class="err" id="ferr" role="alert"></p></div>';
+},
+markets:function(){
+  var s=SYMS.filter(function(x){return x.id===UI.sym})[0],p=last(s.id);
+  var d=S.mkt[s.id].slice(-UI.range),chg=(d[d.length-1]/d[0]-1);
+  return'<h2>Markets</h2><p class="sub">Watch how simulated prices move. Nothing here is real, so explore freely.</p>'+
+  '<div class="chips">'+SYMS.map(function(x){return'<button class="chip" data-act="sym" data-id="'+x.id+'" aria-pressed="'+(x.id===UI.sym)+'">'+x.id+'</button>'}).join('')+'</div>'+
+  '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h3 style="margin:0">'+esc(s.name)+'</h3><div class="stat"><div class="v">'+S.cur+p.toLocaleString('en-US',{maximumFractionDigits:2})+'</div></div></div>'+
+  '<div class="'+(chg>=0?'good':'warn')+'" style="font-weight:600">'+(chg>=0?'+':'')+(chg*100).toFixed(1)+'% over '+d.length+' days</div></div>'+chart(d,chg>=0)+
+  '<div class="chips" style="margin:10px 0 0">'+[30,90].map(function(r){return'<button class="chip" data-act="range" data-n="'+r+'" aria-pressed="'+(UI.range===r)+'">'+r+' days</button>'}).join('')+'<button class="chip" data-act="next">Simulate next day</button></div>'+
+  '<p class="note">'+(s.kind==='crypto'?'Crypto swings the most. Notice how wide the chart moves compared with the fund.':s.kind==='fund'?'A fund spreads your money across many companies, so the line is smoother.':'A single stock rides on one company, so it moves more than a fund.')+'</p></div>';
+},
+history:function(){
+  var d='';return'<h2>History</h2><p class="sub">Every move you make, newest first.</p><div class="card">'+(S.hist.length?S.hist.map(function(h){var day=new Date(h.t).toLocaleDateString('en-US',{month:'short',day:'numeric'}),hd=day!==d?'<div class="hd">'+day+'</div>':'';d=day;return hd+'<div class="row"><span>'+esc(h.x)+'</span></div>'}).join(''):'<p class="sub">Nothing yet.</p>')+'</div>';
+}};
+
+/* dynamic regions: refreshed without touching form fields, so focus and open panels survive edits */
+function fillHome(){
+  var sp=spent(),bt=budgetTotal(),bm=bnplMonthly(),left=S.income-sp-bm,cp=canProject();
+  set('#h-demo',demoBar());
+  set('#h-title','<h2>'+(S.name?esc(S.name)+', your month so far':'Your month so far')+'</h2><p class="sub">Day '+DOM+' of '+DIM+'</p>');
+  set('#h-stats',
+    '<div class="card stat"><div class="k">Spent this month</div><div class="v">'+money(sp)+'</div><div class="n">of '+money(bt)+' budgeted</div></div>'+
+    '<div class="card stat"><div class="k">Total owed</div><div class="v '+(bm>S.income*.2?'warn':'')+'">'+money(bnplOwed())+'</div><div class="n">'+money(bm)+' due each month</div></div>'+
+    '<div class="card stat"><div class="k">Left this month</div><div class="v '+(left<0?'warn':'')+'">'+money(left)+'</div><div class="n">Income minus spending and liabilities</div></div>'+
+    '<div class="card stat"><div class="k">Month-end pace</div><div class="v">'+(cp?money(projected()+bm):'After day 7')+'</div><div class="n">'+(cp?'incl. liabilities, vs '+money(S.income)+' income':'Needs a week of data to be fair')+'</div></div>');
+  set('#h-tips',tips(insights()));set('#h-days',dayBars());set('#h-bars',catBars(MONTH));
+}
+function fillSpend(){
+  var m=vmonth(),list=expIn(m).slice().sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0}),tot=sum(list.map(function(e){return e.a}));
+  set('#s-demo',demoBar());
+  set('#s-title',monthLabel(m)+' · '+money(tot));
+  set('#s-list',list.length?list.map(function(e){return'<div class="row"><div class="l"><b style="font-weight:500">'+esc(e.n||e.c)+'</b><small>'+esc(e.d)+' · '+e.c+' · '+MOODNAME[e.m]+(e.s?' · sample':'')+'</small></div><div class="r">'+money(e.a)+'<button class="x" data-act="edit-exp" data-id="'+e.id+'" aria-label="Edit expense" title="Edit">✎</button><button class="x" data-act="del-exp" data-id="'+e.id+'" aria-label="Delete expense">×</button></div></div>'}).join(''):'<p class="sub">No expenses in this month.</p>');
+  set('#s-bars',catBars(m));
+  var moods=MOODS.map(function(x){var v=sum(list.filter(function(e){return e.m===x[0]}).map(function(e){return e.a}));return v?'<div class="row"><span>'+x[1]+'</span><span class="r">'+money(v)+' <small style="color:var(--muted);font-weight:400">&nbsp;'+pct(v/tot)+'</small></span></div>':''}).join('');
+  set('#s-moods',moods?'<div class="card" style="margin-top:12px"><h3>Spending by mood</h3>'+moods+'</div>':'');
+}
+function fillDyn(){if(UI.tab==='home')fillHome();else if(UI.tab==='spend')fillSpend()}
+
+function chart(d,up){
+  var W=640,H=220,L=8,R=8,T=14,B=22,mn=Math.min.apply(null,d),mx=Math.max.apply(null,d),pd=(mx-mn)*.08||1;mn-=pd;mx+=pd;
+  var x=function(i){return L+i*(W-L-R)/(d.length-1)},y=function(v){return T+(H-T-B)*(1-(v-mn)/(mx-mn))};
+  var pts=d.map(function(v,i){return x(i).toFixed(1)+' '+y(v).toFixed(1)}),col=up?'var(--good)':'var(--warn)';
+  var lo=Math.min.apply(null,d),hi=Math.max.apply(null,d);
+  return'<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Price over the last '+d.length+' days, from '+d[0]+' to '+d[d.length-1]+'">'+
+  [0,1,2].map(function(i){var gy=T+(H-T-B)*i/2;return'<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy+'" y2="'+gy+'" stroke="var(--line)" stroke-width="1"/>'}).join('')+
+  '<path d="M'+pts.join('L')+'L'+x(d.length-1)+' '+(H-B)+'L'+L+' '+(H-B)+'Z" fill="'+col+'" fill-opacity=".12"/>'+
+  '<path d="M'+pts.join('L')+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+  '<circle cx="'+x(d.length-1)+'" cy="'+y(d[d.length-1])+'" r="4.5" fill="'+col+'"/>'+
+  '<text x="'+L+'" y="'+(H-6)+'" font-size="11" fill="var(--muted)">Low '+lo.toLocaleString('en-US',{maximumFractionDigits:2})+'</text>'+
+  '<text x="'+(W-R)+'" y="'+(H-6)+'" font-size="11" text-anchor="end" fill="var(--muted)">High '+hi.toLocaleString('en-US',{maximumFractionDigits:2})+'</text></svg>';
+}
+
+/* ---------- sign up / log in ---------- */
+var TERMS='<ol><li><b>Who can use Thrifty.</b> You must be 18 or older. By continuing you confirm that you are.</li><li><b>What Thrifty is.</b> Thrifty is a learning and budgeting tool. Its advice is general guidance based on the numbers you enter. It is not licensed financial, investment, tax or legal advice, and you make your own decisions.</li><li><b>Practice markets.</b> Prices in the Markets tab are simulated practice data. No real money moves and nothing there can be bought or sold.</li><li><b>Your information.</b> What you enter is stored only in this browser on this device, encrypted with a key made from your password. Clearing your browser data removes it, so download a backup now and then. Thrifty does not store your birth date. The typeface is the only thing loaded from the internet (Google Fonts).</li><li><b>Your responsibility.</b> Advice is only as good as the numbers you give. Check them, and talk to a licensed professional before big money decisions.</li><li><b>Your account.</b> Your login works on this device only. Your password cannot be recovered or reset, and without it your data cannot be read. Keep a backup.</li><li><b>Changes.</b> These terms may change, and you may be asked to agree again.</li></ol>';
+function authTabs(){return'<div class="chips"><button type="button" class="chip" data-act="auth-mode" data-id="register" aria-pressed="'+(UI.authMode==='register')+'">Create account</button><button type="button" class="chip" data-act="auth-mode" data-id="login" aria-pressed="'+(UI.authMode==='login')+'">Log in</button></div>'}
+function gate(){
+  return'<div class="gate"><h2>Create your account</h2><p class="sub">Five quick steps. Your account and data stay on this device.</p>'+authTabs()+'<form data-form="register">'+
+  '<div class="card" style="margin-bottom:12px"><h3>1. Terms of Agreement</h3><div class="terms" tabindex="0" role="region" aria-label="Terms of Agreement">'+TERMS+'</div><label class="chk"><input type="checkbox" name="agree" id="agree" required><span>I have read and agree to the Terms of Agreement.</span></label></div>'+
+  '<div class="card" style="margin-bottom:12px"><h3>2. Your login</h3><label>Email<input type="email" name="email" id="remail" required maxlength="120" autocomplete="email"></label><label style="margin-top:10px">Password<input type="password" name="pw" id="rpw" required minlength="8" maxlength="200" autocomplete="new-password"></label><label style="margin-top:10px">Confirm password<input type="password" name="pw2" id="rpw2" required minlength="8" maxlength="200" autocomplete="new-password"></label><p class="note">At least 8 characters. Your password encrypts your data on this device. It cannot be recovered, so if you forget it your data cannot be opened.</p></div>'+
+  '<div class="card" style="margin-bottom:12px"><h3>3. Your name</h3><label>Name<input type="text" name="nm" id="nm" required maxlength="40" autocomplete="given-name" placeholder="What should Thrifty call you?"></label></div>'+
+  '<div class="card" style="margin-bottom:12px"><h3>4. Date of birth</h3><p class="sub" style="margin-bottom:10px">Thrifty is for people aged 18 and above. Type your birth date, no calendar needed.</p><div class="dob"><label>Day<input type="number" name="dd" id="dd" min="1" max="31" step="1" required inputmode="numeric" placeholder="DD"></label><label>Month<input type="number" name="mm" id="mm" min="1" max="12" step="1" required inputmode="numeric" placeholder="MM"></label><label>Year<input type="number" name="yy" id="yy" min="1900" max="'+NOW.getFullYear()+'" step="1" required inputmode="numeric" placeholder="YYYY"></label></div><p id="age-out" class="note" role="status">Your age will show here.</p><p class="note">Used once to check eligibility. Your birth date is not stored.</p></div>'+
+  '<div class="card" style="margin-bottom:12px"><h3>5. Monthly income</h3><p class="sub" style="margin-bottom:10px">What you take home each month. Thrifty uses it for budgets, liability limits and your month-end projection. You can change it any time on the Home tab.</p><div class="pair"><label>Currency<select name="cur" id="gcur">'+CURS.map(function(c){return'<option>'+c+'</option>'}).join('')+'</select></label><label>Monthly income<input type="number" name="inc" id="ginc" min="1" max="1000000000" step="any" required inputmode="decimal"></label></div></div>'+
+  '<button class="btn" id="auth-go" style="width:100%">Agree and create account</button><p id="auth-err" class="err" role="alert"></p></form></div>';
+}
+function loginScreen(){
+  return'<div class="gate"><h2>Welcome back</h2><p class="sub">Log in to pick up where you left off.</p>'+authTabs()+(lockMsg?'<p class="note" role="status">'+esc(lockMsg)+'</p>':'')+'<form data-form="login"><div class="card" style="margin-bottom:12px"><label>Email<input type="email" name="email" id="lemail" required autocomplete="email"></label><label style="margin-top:10px">Password<input type="password" name="pw" id="lpw" required autocomplete="current-password"></label></div><button class="btn" id="auth-go" style="width:100%">Log in</button><p id="auth-err" class="err" role="alert"></p></form><p class="note">Accounts live on this device only. A forgotten password cannot be reset, but you can create a new account.</p></div>';
+}
+function authScreen(){return UI.authMode==='login'?loginScreen():gate()}
+function ageFrom(d,m,y){d=+d;m=+m;y=+y;if(!d||!m||!y||y<1900)return null;var dt=new Date(y,m-1,d);if(dt.getFullYear()!==y||dt.getMonth()!==m-1||dt.getDate()!==d||dt>NOW)return null;var a=NOW.getFullYear()-y;if(NOW.getMonth()<m-1||(NOW.getMonth()===m-1&&NOW.getDate()<d))a--;return a}
+
+function startSession(em,key,jwk,saltB64,created,state){
+  USER=em;KEY=key;SALT=saltB64;CREATED=created;S=state;UI.vm=null;UI.edit=null;lockMsg='';
+  ssSet(SESSK,JSON.stringify({u:em,k:jwk,s:saltB64,c:created}));
+  var t=ssGet(TABK);UI.tab=VIEWS[t]?t:'home';resetIdle();
+}
+function endSession(msg){
+  var p=saveChain;
+  p.then(function(){
+    USER=null;KEY=null;S=null;SALT='';ssDel(SESSK);clearTimeout(idleT);undoSnap=null;
+    lockMsg=msg||'';UI.authMode=accounts().length?'login':'register';UI.edit=null;
+    var t=$('#toast');if(t)t.hidden=true;
+    render();window.scrollTo(0,0);
+  });
+}
+function resetIdle(){clearTimeout(idleT);if(USER)idleT=setTimeout(function(){endSession('Locked after 15 minutes of inactivity. Log in to continue.')},IDLE_MS)}
+
+function doRegister(fd){
+  if(busy)return;
+  var g=function(n){return fd.get(n)},er=$('#auth-err'),em=String(g('email')||'').trim().toLowerCase(),pw=String(g('pw')||''),pw2=String(g('pw2')||''),nm=String(g('nm')||'').trim().slice(0,40),ag=ageFrom(g('dd'),g('mm'),g('yy')),inc=parseFloat(g('inc')),cur=g('cur');
+  if(!g('agree')){er.textContent='Please agree to the Terms of Agreement.';return}
+  if(!em||em.length>120){er.textContent='Enter your email.';return}
+  if(pw.length<8){er.textContent='Your password needs at least 8 characters.';return}
+  if(pw!==pw2){er.textContent='The two passwords do not match.';return}
+  if(!nm){er.textContent='Enter your name.';return}
+  if(ag===null||ag>120){er.textContent='Enter a real date of birth.';return}
+  if(ag<18){er.textContent='Thrifty is for people aged 18 and above, so you cannot continue yet. Come back when you are 18.';return}
+  if(!(inc>0&&inc<=MAXA)){er.textContent='Enter your monthly income, above zero and up to 1,000,000,000.';return}
+  if(lsGet(PREFIX+em)){er.textContent='An account with this email already exists on this device. Log in instead.';return}
+  busy=true;$('#auth-go').disabled=true;er.textContent='Creating your account...';
+  var salt=crypto.getRandomValues(new Uint8Array(16)),st=freshState(nm,cur,inc),created=Date.now(),key,saltB=b64e(salt);
+  st.hist.unshift({t:created,x:'Created the account, agreed to the Terms and confirmed age 18 or above. Monthly income set to '+st.cur+Math.round(inc).toLocaleString('en-US')});
+  deriveKey(pw,salt).then(function(k){key=k;return encryptObj(k,st)}).then(function(e){
+    if(lsGet(PREFIX+em))throw new Error('exists');
+    if(!lsSet(PREFIX+em,JSON.stringify({v:2,salt:saltB,iv:e.iv,ct:e.ct,created:created})))throw new Error('write');
+    return crypto.subtle.exportKey('jwk',key);
+  }).then(function(jwk){startSession(em,key,jwk,saltB,created,st);render();window.scrollTo(0,0)})
+  .catch(function(err){var e2=$('#auth-err');if(e2)e2.textContent=err.message==='exists'?'An account with this email already exists on this device. Log in instead.':err.message==='write'?'Could not save to this browser. Storage may be full or blocked.':'Could not create the account. Try again.';var b=$('#auth-go');if(b)b.disabled=false})
+  .then(function(){busy=false});
+}
+function failKey(em){return FPREFIX+em}
+function doLogin(fd){
+  if(busy)return;
+  var er=$('#auth-err'),em=String(fd.get('email')||'').trim().toLowerCase(),pw=String(fd.get('pw')||''),bad='The email or password is wrong.';
+  var fl={};try{fl=JSON.parse(lsGet(failKey(em))||'{}')}catch(e){}
+  if(fl.until&&fl.until>Date.now()){er.textContent='Too many wrong attempts. Try again in '+Math.ceil((fl.until-Date.now())/1000)+' seconds.';return}
+  var recS=lsGet(PREFIX+em),rec=null;try{rec=recS?JSON.parse(recS):null}catch(e){}
+  if(recS&&(!rec||typeof rec.salt!=='string'||typeof rec.iv!=='string'||typeof rec.ct!=='string')){er.textContent='Your saved data looks damaged. It has not been changed or deleted. If you have a backup file, create a new account and restore it.';return}
+  busy=true;$('#auth-go').disabled=true;er.textContent='Checking...';
+  var fail=function(){var n=(fl.n||0)+1,o={n:n};if(n>=5)o.until=Date.now()+Math.min(900,30*Math.pow(2,n-5))*1000;lsSet(failKey(em),JSON.stringify(o));var e2=$('#auth-err');if(e2)e2.textContent=bad};
+  if(!rec||!rec.salt){fail();busy=false;var b0=$('#auth-go');if(b0)b0.disabled=false;return}
+  var key;
+  Promise.resolve().then(function(){return deriveKey(pw,b64d(rec.salt))}).then(function(k){key=k;return decryptText(k,rec).then(function(t){return{t:t}},function(){return null})}).then(function(r){
+    if(!r){fail();return}
+    lsDel(failKey(em));
+    var st;try{st=migrate(JSON.parse(r.t))}catch(e){var e3=$('#auth-err');if(e3)e3.textContent='Your saved data looks damaged. It has not been changed or deleted.';return}
+    return crypto.subtle.exportKey('jwk',key).then(function(jwk){startSession(em,key,jwk,rec.salt,rec.created||Date.now(),st);render();window.scrollTo(0,0)});
+  }).catch(function(){var e4=$('#auth-err');if(e4)e4.textContent='Could not log in. Try again.'})
+  .then(function(){busy=false;var b=$('#auth-go');if(b)b.disabled=false});
+}
+function restoreSession(){
+  var raw=ssGet(SESSK);if(!raw)return Promise.resolve(false);
+  var ss,rec;try{ss=JSON.parse(raw);rec=JSON.parse(lsGet(PREFIX+ss.u)||'null')}catch(e){ssDel(SESSK);return Promise.resolve(false)}
+  if(!rec){ssDel(SESSK);return Promise.resolve(false)}
+  return crypto.subtle.importKey('jwk',ss.k,{name:'AES-GCM'},true,['encrypt','decrypt']).then(function(k){
+    return decryptText(k,rec).then(function(t){var st=migrate(JSON.parse(t));startSession(ss.u,k,ss.k,rec.salt,rec.created||Date.now(),st);return true});
+  }).catch(function(){ssDel(SESSK);return false});
+}
+
+/* ---------- render ---------- */
+function render(){
+  tick();
+  var ready=!!(USER&&S&&!FATAL);
+  document.querySelectorAll('#nav [data-tab]').forEach(function(b){b.setAttribute('aria-current',ready&&b.dataset.tab===UI.tab?'page':'false')});
+  $('#nav').hidden=!ready;
+  $('#acct').innerHTML=ready?'<span>'+esc(USER)+'</span><button type="button" class="btn alt" data-act="logout">Log out</button>':'';
+  $('#view').innerHTML=FATAL?FATAL:ready?VIEWS[UI.tab]():authScreen();
+  if(ready)fillDyn();
+}
+function toast(msg,undo){var t=$('#toast');t.innerHTML='<span>'+esc(msg)+'</span>'+(undo?'<button type="button" data-act="undo">Undo</button>':'');t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true},undo?8000:4500)}
+function snap(){undoSnap=JSON.stringify(S)}
+function ask(msg,ok){return new Promise(function(res){var d=$('#dlg');$('#dlg-msg').textContent=msg;$('#dlg-ok').textContent=ok||'OK';d.returnValue='';var h=function(){d.removeEventListener('close',h);res(d.returnValue==='yes')};d.addEventListener('close',h);d.showModal()})}
+$('#dlg').addEventListener('click',function(ev){var b=ev.target.closest('[data-dlg]');if(b)$('#dlg').close(b.dataset.dlg)});
+function fieldErr(msg){var e=$('#ferr');if(e)e.textContent=msg}
+
+/* ---------- events ---------- */
+document.addEventListener('toggle',function(ev){var d=ev.target;if(d&&d.tagName==='DETAILS'&&d.dataset.k)OPEN[d.dataset.k]=d.open},true);
+['click','keydown','touchstart'].forEach(function(e){document.addEventListener(e,resetIdle,{passive:true})});
+
+document.addEventListener('click',function(ev){
+  var t=ev.target.closest('[data-tab],[data-act]');if(!t)return;
+  tick();
+  if(t.dataset.tab){if(!S)return;UI.tab=t.dataset.tab;UI.edit=null;ssSet(TABK,UI.tab);render();window.scrollTo(0,0);return}
+  var a=t.dataset.act,id=t.dataset.id,doSave=true;
+  if(a==='auth-mode'){UI.authMode=id;render();return}
+  if(a==='logout'){endSession('');return}
+  if(a==='undo'){if(undoSnap&&S){S=migrate(JSON.parse(undoSnap));undoSnap=null;$('#toast').hidden=true;save();render()}return}
+  if(!S)return;
+  if(a==='del-acct'){
+    ask('Delete this account and all its data from this device? This cannot be undone. Download a backup first if you might need it.','Delete account').then(function(yes){
+      if(!yes)return;var u=USER;lsDel(PREFIX+u);lsDel(failKey(u));USER=null;KEY=null;S=null;ssDel(SESSK);clearTimeout(idleT);lockMsg='';UI.authMode=accounts().length?'login':'register';render();window.scrollTo(0,0)});
+    return}
+  if(a==='backup'){
+    var url=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})),l=document.createElement('a');
+    l.href=url;l.download='thrifty-backup-'+TODAY+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(url)},1500);toast('Backup downloaded. Keep the file private.');return}
+  if(a==='restore-pick'){$('#restore').value='';$('#restore').click();return}
+  if(a==='del-exp'){var e=S.exp.filter(function(x){return x.id===id})[0];snap();S.exp=S.exp.filter(function(x){return x.id!==id});if(UI.edit===id)UI.edit=null;if(e){log('Deleted expense: '+(e.n||e.c)+' '+money(e.a));toast('Expense deleted.',true)}}
+  else if(a==='edit-exp'){UI.edit=id;render();var c=$('#exp-card');if(c)c.scrollIntoView({block:'center'});return}
+  else if(a==='edit-cancel'){UI.edit=null;render();return}
+  else if(a==='del-bnpl'){var bp=S.bnpl.filter(function(x){return x.id===id})[0];snap();S.bnpl=S.bnpl.filter(function(x){return x.id!==id});if(bp){log('Removed liability: '+bp.n);toast('Liability removed.',true)}}
+  else if(a==='sym'){UI.sym=id;doSave=false}
+  else if(a==='range'){UI.range=+t.dataset.n;doSave=false}
+  else if(a==='next'){SYMS.forEach(function(s){var arr=S.mkt[s.id],p=arr[arr.length-1];arr.push(+(p*(1+s.drift+(Math.random()-.5)*2*s.vol)).toFixed(2));if(arr.length>180)arr.shift()});log('Simulated one market day')}
+  else if(a==='mprev'){var m=vmonth();if(m>earliest())UI.vm=shiftMonth(m,-1);doSave=false}
+  else if(a==='mnext'){var m2=vmonth();if(m2<MONTH){var n=shiftMonth(m2,1);UI.vm=n>=MONTH?null:n}doSave=false}
+  else if(a==='load-sample'){if(!hasSample()){var si=sampleItems();S.exp=S.exp.concat(si.exp);S.bnpl=S.bnpl.concat(si.bnpl);log('Loaded sample data so you can explore.')}}
+  else if(a==='rm-sample'){snap();S.exp=S.exp.filter(function(x){return!x.s});S.bnpl=S.bnpl.filter(function(x){return!x.s});log('Removed the sample data. Your own entries are kept.');toast('Sample data removed.',true)}
+  if(doSave)save();render();
+});
+document.addEventListener('submit',function(ev){
+  ev.preventDefault(); /* never let a form reload the page */
+  var f=ev.target.closest('[data-form]');if(!f)return;
+  tick();
+  var fd=new FormData(f),k=f.dataset.form,g=function(n){return fd.get(n)};
+  if(k==='register'){doRegister(fd);return}
+  if(k==='login'){doLogin(fd);return}
+  if(!S)return;
+  if(k==='exp'){
+    var a=parseFloat(g('a')),d=String(g('d')||''),n=String(g('n')||'').trim().slice(0,60);
+    if(!(a>=0.01&&a<=MAXA)){fieldErr('Enter an amount between 0.01 and 1,000,000,000.');return}
+    if(!validDay(d)||d>TODAY||d<'2000-01-01'){fieldErr('Pick a valid date that is not in the future.');return}
+    if(CATS.indexOf(g('c'))<0||!MOODNAME[g('m')]){fieldErr('Pick a category and a reason.');return}
+    if(UI.edit){var ex=S.exp.filter(function(x){return x.id===UI.edit})[0];if(ex){ex.a=a;ex.d=d;ex.c=g('c');ex.n=n;ex.m=g('m');ex.s=0;log('Edited expense: '+(n||ex.c)+' '+money(a))}UI.edit=null}
+    else{S.exp.push({id:uid(),d:d,a:a,c:g('c'),n:n,m:g('m'),s:0});log('Spent '+money(a)+' on '+g('c')+(n?' ('+n+')':'')+', felt: '+MOODNAME[g('m')].toLowerCase())}
+    UI.vm=d.slice(0,7)>=MONTH?null:d.slice(0,7);
+    save();render();var fa=$('form[data-form=exp] [name=a]');if(fa)fa.focus();return}
+  if(k==='bnpl'){
+    var nm=String(g('n')||'').trim().slice(0,60),m=parseFloat(g('m')),l=parseInt(g('left'),10);
+    if(!nm){fieldErr('Enter a name for what you owe.');return}
+    if(!(m>=0.01&&m<=MAXA)){fieldErr('Enter a monthly payment between 0.01 and 1,000,000,000.');return}
+    if(!(l>=1&&l<=600)){fieldErr('Months left must be a whole number from 1 to 600.');return}
+    if(LTYPES.indexOf(g('t'))<0){fieldErr('Pick a type.');return}
+    S.bnpl.push({id:uid(),n:nm,t:g('t'),m:m,left:l,since:MONTH,s:0});log('Added liability: '+nm+' ('+g('t')+'), '+money(m)+' for '+l+' months');
+    save();render();var fn=$('form[data-form=bnpl] [name=n]');if(fn)fn.focus()}
+});
+document.addEventListener('input',function(ev){
+  var id=ev.target.id;if(id!=='dd'&&id!=='mm'&&id!=='yy')return;
+  var o=$('#age-out'),dd=$('#dd').value,mm=$('#mm').value,yy=$('#yy').value;if(!o)return;
+  if(!dd||!mm||String(yy).length<4){o.textContent='Your age will show here.';return}
+  var a=ageFrom(dd,mm,yy);
+  o.textContent=a===null?'Enter a real birth date.':a>=18?'You are '+a+'. You can continue.':'You are '+a+'. Thrifty is for people aged 18 and above.';
+});
+document.addEventListener('change',function(ev){
+  var t=ev.target.closest('[data-bind]');if(!S||!t)return;var b=t.dataset.bind;tick();
+  if(b==='income'){var v=parseFloat(t.value);if(!(v>=0&&v<=MAXA)){toast('Income must be between 0 and 1,000,000,000.');t.value=S.income;return}S.income=v}
+  else if(b==='cur'){if(CURS.indexOf(t.value)<0)return;S.cur=t.value}
+  else if(b==='name'){var nv=t.value.trim().slice(0,40);if(nv)S.name=nv;else t.value=S.name||''}
+  else if(b==='budget'){var bv=parseFloat(t.value);if(!(bv>=0&&bv<=MAXA)){toast('Budgets must be between 0 and 1,000,000,000.');t.value=S.budget[t.dataset.cat];return}S.budget[t.dataset.cat]=bv}
+  save();fillDyn(); /* only the numbers refresh: panels stay open, focus stays put */
+});
+$('#restore').addEventListener('change',function(){
+  var f=this.files&&this.files[0];if(!f||!S)return;
+  if(f.size>5*1024*1024){toast('That file is too large to be a Thrifty backup.');return}
+  var r=new FileReader();
+  r.onload=function(){
+    var ns;try{ns=migrate(JSON.parse(String(r.result)))}catch(e){toast('That file is not a valid Thrifty backup.');return}
+    ask('Replace everything in this account with the backup ('+ns.exp.length+' expenses, '+ns.bnpl.length+' liabilities)?','Restore').then(function(yes){
+      if(!yes)return;snap();S=ns;log('Restored data from a backup file.');save();render();toast('Backup restored.',true)});
+  };
+  r.onerror=function(){toast('Could not read that file.')};
+  r.readAsText(f);
+});
+window.addEventListener('storage',function(ev){
+  if(!USER||!KEY||ev.key!==PREFIX+USER)return;
+  if(ev.newValue==null){endSession('This account was deleted in another tab.');return}
+  try{var rec=JSON.parse(ev.newValue);decryptText(KEY,rec).then(function(t){S=migrate(JSON.parse(t));render();toast('Updated from another tab.')}).catch(function(){})}catch(e){}
+});
+
+/* ---------- start ---------- */
+function fatal(title,body){FATAL='<div class="gate card"><h2>'+title+'</h2><p class="sub" style="margin:8px 0 0">'+body+'</p></div>'}
+(function boot(){
+  if(!(window.crypto&&crypto.subtle&&window.TextEncoder)){fatal('Secure features are not available','Thrifty needs a secure page. Open it from a local file, from http://localhost (for example VS Code Live Server), or from an https address, not from a plain http address on your network.');render();return}
+  if(!storageOk()){fatal('Browser storage is blocked','Thrifty saves your data in this browser, and storage is switched off or full. Turn it on for this page (or leave private browsing) and reload.');render();return}
+  UI.authMode=accounts().length?'login':'register';
+  restoreSession().then(function(){render()});
+})();
+})();
+</script>
+</body>
+</html>
